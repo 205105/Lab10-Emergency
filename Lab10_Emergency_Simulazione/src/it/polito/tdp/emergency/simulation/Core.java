@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
+import it.polito.tdp.emergency.db.FieldHospitalDAO;
+
 public class Core {
 	public int getPazientiSalvati() {
 		return pazientiSalvati;
@@ -29,11 +31,14 @@ public class Core {
 	int pazientiSalvati = 0;
 	int pazientiPersi = 0;
 
-	Queue<Evento> listaEventi = new PriorityQueue<Evento>();
-	Map<Integer, Paziente> pazienti = new HashMap<Integer, Paziente>();
-	int mediciDisponibili = 0;
+	FieldHospitalDAO dao=new FieldHospitalDAO();
+	
+	Queue<Evento> listaEventi = new PriorityQueue<Evento>(dao.getAllEventi());
+	Map<Integer, Paziente> pazienti = new HashMap<Integer, Paziente>(dao.getAllPazienti());
+	int mediciDisponibili = 4;
 	Queue<Paziente> pazientiInAttesa = new PriorityQueue<Paziente>();
-
+	Map<Integer, Dottore> dottori = new HashMap<Integer, Dottore>();
+	
 	public int getMediciDisponibili() {
 		return mediciDisponibili;
 	}
@@ -49,8 +54,11 @@ public class Core {
 	public void aggiungiPaziente(Paziente p) {
 		pazienti.put(p.getId(), p);
 	}
-
-	public void passo() {
+	
+	public void aggiungiDottore(Dottore d) {
+		dottori.put(d.getId(), d);
+	}
+	public long passo() {
 		Evento e = listaEventi.remove();
 		switch (e.getTipo()) {
 		case PAZIENTE_ARRIVA:
@@ -82,45 +90,63 @@ public class Core {
 			break;
 		case PAZIENTE_MUORE:
 			if (pazienti.get(e.getDato()).getStato() == Paziente.StatoPaziente.SALVO) {
-				System.out.println("Paziente giï¿½ salvato: " + e);
-			} else {
-				++pazientiPersi;
-				pazienti.get(e.getDato()).setStato(Paziente.StatoPaziente.NERO);
-				System.out.println("Paziente morto: " + e);
+				//System.out.println("Paziente già salvato: " + e);
+			} else { 
 				if (pazienti.get(e.getDato()).getStato() == Paziente.StatoPaziente.IN_CURA) {
 					++mediciDisponibili;
 				}
+				++pazientiPersi;
+				pazienti.get(e.getDato()).setStato(Paziente.StatoPaziente.NERO);
+				System.out.println("Paziente morto: " + e);
 			}
+			break;
+		case  DOCTOR_INIZIA_TURNO:
+			++mediciDisponibili;
+			dottori.get(e.getDato()).setSDisponibile(true);
+			System.out.println("Dottore inizia turno: " +e);
+			this.aggiungiEvento(new Evento(e.getTempo() + 480, Evento.TipoEvento.DOCTOR_FINE_TURNO, e.getDato()));
+			break;
+		case DOCTOR_FINE_TURNO:
+			--mediciDisponibili;
+			System.out.println("Dottore finisce turno: " +e);
+			this.aggiungiEvento(new Evento(e.getTempo() + 960, Evento.TipoEvento.DOCTOR_INIZIA_TURNO, e.getDato()));
+			dottori.get(e.getDato()).setSDisponibile(false);
 			break;
 		default:
 			System.err.println("Panik!");
 		}
 
-		while (cura(e.getTempo()))
-			;
+		while (cura(e.getTempo()));
+			
+		return e.getTempo();
 	}
 
 	protected boolean cura(long adesso) {
 		if (pazientiInAttesa.isEmpty())
 			return false;
-		if (mediciDisponibili == 0)
+		if (mediciDisponibili == 0){
 			return false;
+		}
 
 		Paziente p = pazientiInAttesa.remove();
 		if (p.getStato() != Paziente.StatoPaziente.NERO) {
 			--mediciDisponibili;
 			pazienti.get(p.getId()).setStato(Paziente.StatoPaziente.IN_CURA);
-			aggiungiEvento(new Evento(adesso + 30, Evento.TipoEvento.PAZIENTE_GUARISCE, p.getId()));
-			System.out.println("Inizio a curare: " + p);
+			this.aggiungiEvento(new Evento(adesso + 30, Evento.TipoEvento.PAZIENTE_GUARISCE, p.getId()));
+			//System.out.println("Inizio a curare: " + p);
 		}
-
 		return true;
+	}
+	
+
+	public Queue<Evento> getListaEventi() {
+		return listaEventi;
 	}
 
 	public void simula() {
-		while (!listaEventi.isEmpty()) {
+		long prova=this.getListaEventi().element().getTempo()+60*48;
+		while (prova>passo()) { 
 			passo();
 		}
 	}
-
 }
