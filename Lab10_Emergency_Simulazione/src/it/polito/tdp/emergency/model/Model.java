@@ -1,6 +1,6 @@
 package it.polito.tdp.emergency.model;
 
-import it.polito.tdp.emergency.db.FieldHospitalDAO;
+import it.polito.tdp.emergency.simulation.Assistente;
 import it.polito.tdp.emergency.simulation.Core;
 import it.polito.tdp.emergency.simulation.Dottore;
 import it.polito.tdp.emergency.simulation.Evento;
@@ -40,11 +40,21 @@ public class Model {
 		simulatore.aggiungiEvento(new Evento(simulatore.getListaEventi().element().getTempo()+120, Evento.TipoEvento.DOCTOR_INIZIA_TURNO, 2002));
 		simulatore.aggiungiEvento(new Evento(simulatore.getListaEventi().element().getTempo()+2*120, Evento.TipoEvento.DOCTOR_INIZIA_TURNO, 2003));
 		simulatore.aggiungiEvento(new Evento(simulatore.getListaEventi().element().getTempo()+4*120, Evento.TipoEvento.DOCTOR_INIZIA_TURNO, 2004));
-		//System.out.println(new Evento(simulatore.getListaEventi().element().getTempo(), Evento.TipoEvento.DOCTOR_INIZIA_TURNO, 2008));
+		
+
+		simulatore.aggiungiAssistente(new Assistente(1, false));
+		simulatore.aggiungiAssistente(new Assistente(2, false));
+		simulatore.aggiungiAssistente(new Assistente(3, false));
+		
+		simulatore.aggiungiEvento(new Evento(simulatore.getListaEventi().element().getTempo(), Evento.TipoEvento.ASS_INIZIA_TURNO, 3001));
+		simulatore.aggiungiEvento(new Evento(simulatore.getListaEventi().element().getTempo()+ 8 * 60, Evento.TipoEvento.ASS_INIZIA_TURNO, 3002));
+		simulatore.aggiungiEvento(new Evento(simulatore.getListaEventi().element().getTempo()+ 16 * 60, Evento.TipoEvento.ASS_INIZIA_TURNO, 3003));
+		
 		simulatore.simula();
 
 		System.err.println("Persi:" + simulatore.getPazientiPersi());
 		System.err.println("Salvati:" + simulatore.getPazientiSalvati());
+		System.err.println("Arrivati:" + simulatore.getPazientiArrivati());
 	}
 
 }

@@ -14,7 +14,7 @@ package it.polito.tdp.emergency.simulation;
 
 public class Paziente implements Comparable<Paziente> {
 	public enum StatoPaziente {
-		ROSSO, GIALLO, VERDE, BIANCO, IN_CURA, SALVO, NERO
+		ROSSO, GIALLO, VERDE, BIANCO, IN_CURA, IN_CURA_ASS, SALVO, NERO
 	};
 
 	private int id;
