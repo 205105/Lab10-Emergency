@@ -115,13 +115,17 @@ public class Core {
 			} else { 
 				if (pazienti.get(e.getDato()).getStato() == Paziente.StatoPaziente.IN_CURA) {
 					++mediciDisponibili;
+					System.out.println("Paziente morto SOTTO I FERRI: " + e);
 				}
 				if (pazienti.get(e.getDato()).getStato() == Paziente.StatoPaziente.IN_CURA_ASS) {
 					++assDisp;
+					System.out.println("Paziente morto SOTTO I FERRI: " + e);
+				}else {
+					System.out.println("Paziente morto: " + e);
 				}
 				++pazientiPersi;
 				pazienti.get(e.getDato()).setStato(Paziente.StatoPaziente.NERO);
-				System.out.println("Paziente morto: " + e);
+				
 			}
 			break;
 		case DOCTOR_INIZIA_TURNO:
@@ -193,7 +197,7 @@ public class Core {
 	}
 
 	public void simula() {
-		long prova=this.getListaEventi().element().getTempo()+60*150;
+		long prova=this.getListaEventi().element().getTempo()+60*8;
 		while (prova>passo()) { 
 			passo();
 		}
